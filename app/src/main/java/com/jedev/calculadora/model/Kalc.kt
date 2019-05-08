@@ -1,7 +1,6 @@
 package com.jedev.calculadora.model
 
 import com.udojava.evalex.Expression
-import java.lang.ArithmeticException
 import java.math.BigDecimal
 import kotlin.properties.Delegates
 
@@ -80,8 +79,7 @@ class Kalc {
 
                 this.display = result
                 this.expression = result
-
-            } catch (e: ArithmeticException) {
+            } catch (e: Throwable) {
                 result = "#Error"
             } finally {
                 this.display = result
@@ -92,7 +90,7 @@ class Kalc {
     private fun checkIfHasOperationInExpression(): Boolean {
         var hasOperationInExpression = false
 
-        arrayListOf('+', '-', '/', '*').forEach {
+        arrayListOf('+', '-', '/', '*', '(', ')').forEach {
             if (this.expression.contains(it)) hasOperationInExpression = true
         }
 
@@ -161,8 +159,14 @@ class Kalc {
     }
 
     fun removeLastOperation() {
-        this.display = this.display.dropLast(1)
-        this.expression = this.expression.dropLast(1)
+        if (this.display.length == 1) {
+            this.display = "0"
+            this.expression = ""
+            this.hasResult = true
+        } else {
+            this.display = this.display.dropLast(1)
+            this.expression = this.expression.dropLast(1)
+        }
     }
 
 }
