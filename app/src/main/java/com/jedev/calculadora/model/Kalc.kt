@@ -68,7 +68,7 @@ class Kalc {
         val withoutResult = !this.hasResult
 
         if (withoutResult && hasOperationInExpression) {
-            var result = "#Error"
+            var result: String
             this.hasResult = true
 
             try {
@@ -79,10 +79,11 @@ class Kalc {
 
                 this.display = result
                 this.expression = result
+
             } catch (e: Throwable) {
                 result = "#Error"
-            } finally {
                 this.display = result
+                this.expression = ""
             }
         }
     }
