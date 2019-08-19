@@ -4,24 +4,23 @@ import com.udojava.evalex.Expression
 import java.math.BigDecimal
 import kotlin.properties.Delegates
 
-class Kalc {
+class Kalc(
+    setOnDisplayListener: (value: String) -> Unit = {},
+    setOnHistoryListener: (value: String) -> Unit = {}
+) {
 
-    private var expression = ""
+    private var expression = String()
     private var hasResult = true
     private var historic = arrayListOf<String>()
 
     // Observables
-    var display by Delegates.observable("0", { _, _, newValue ->
-        setOnDisplayListener?.invoke(newValue)
+    private var display by Delegates.observable("0", { _, _, newValue ->
+        setOnDisplayListener.invoke(newValue)
     })
 
-    var historicStr by Delegates.observable("", { _, _, newValue ->
-        setOnHistoryListener?.invoke(newValue)
+    private var historicStr by Delegates.observable("", { _, _, newValue ->
+        setOnHistoryListener.invoke(newValue)
     })
-
-    // Events Listener
-    var setOnDisplayListener: ((String) -> Unit)? = null
-    var setOnHistoryListener: ((String) -> Unit)? = null
 
     private fun resolveExpression(_expression: String): BigDecimal? {
         return Expression(_expression).eval()
@@ -72,8 +71,8 @@ class Kalc {
             this.hasResult = true
 
             try {
-                val _bigResult = resolveExpression(this.expression)
-                result = _bigResult!!.toEngineeringString()
+                val bigResult = resolveExpression(this.expression)
+                result = bigResult!!.toEngineeringString()
 
                 this.saveInHistory(this.display, result)
 
@@ -92,20 +91,22 @@ class Kalc {
         var hasOperationInExpression = false
 
         arrayListOf('+', '-', '/', '*', '(', ')').forEach {
-            if (this.expression.contains(it)) hasOperationInExpression = true
+            if (this.expression.contains(it)) {
+                hasOperationInExpression = true
+            }
         }
 
         return hasOperationInExpression
     }
 
     private fun saveInHistory(display: String, result: String) {
-        val _itemHistory = "${display} = ${result}"
+        val itemHistory = "$display = $result"
         val totalHistory = this.historic.size
 
         if (totalHistory == 20) {
             this.historic.removeAt(0)
         } else {
-            this.historic.add(_itemHistory)
+            this.historic.add(itemHistory)
         }
 
         this.updateHistoric()
@@ -115,10 +116,14 @@ class Kalc {
         var auxHistoricStr = ""
 
         this.historic.forEach { h ->
-            auxHistoricStr += h + "\n"
+            auxHistoricStr += "$h \n"
         }
 
          this.historicStr = auxHistoricStr
+    }
+
+    private fun clearExpression() {
+        this.expression = ""
     }
 
     fun addNumber(num: String) {
@@ -149,10 +154,6 @@ class Kalc {
         }
     }
 
-    fun clearExpression() {
-        this.expression = ""
-    }
-
     fun clearDisplay() {
         this.display = "0"
         this.hasResult = true
@@ -170,14 +171,15 @@ class Kalc {
         }
     }
 
-}
 
-enum class Operator {
-    PLUS,
-    MINUS,
-    MULTIPLY,
-    RIGHT_PARENTHESES,
-    LEFT_PARENTHESES,
-    DIVIDE,
-    EQUALS
+    enum class Operator {
+        PLUS,
+        MINUS,
+        MULTIPLY,
+        RIGHT_PARENTHESES,
+        LEFT_PARENTHESES,
+        DIVIDE,
+        EQUALS
+    }
+
 }
